@@ -27,7 +27,7 @@ export function CartProvider({ children }) {
   };
 
   // Resta o elimina un producto
-  // ¡CORRECCIÓN CLAVE! Ahora removeFromCart espera solo el ID del producto
+  // ¡CORRECCIÓN CLAVE! Ahora removeFromCaart espera solo el ID del producto
   const removeFromCart = (productId) => { // <-- Cambiado 'product' a 'productId'
     console.log("CartContext: removeFromCart llamado con ID:", productId); // Depuración
     setCartItems((prev) => {
