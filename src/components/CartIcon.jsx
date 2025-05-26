@@ -1,7 +1,7 @@
 // cartIcon.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CartProvider } from "./components/CartContext";
+import { CartContext } from "./CartContext"; // <-- SOLO necesitas CartContext para useContext
 
 
 export default function CartIcon() {
