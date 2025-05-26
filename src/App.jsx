@@ -8,7 +8,7 @@ import CartPage from "./components/Cart"; // Asegúrate de que este componente e
 import AdminLogin from "./components/AdminLogin";
 import AdminPanel from "./components/AdminPanel";
 import ProtectedRoute from "./components/protectedRoute";
-import WhatsAppButton from "./components/WhatsappButton";
+import WhatsAppButton from "./components/WhatsAppButton";
 import { CartProvider } from "./components/CartContext";
 
 export default function App() {

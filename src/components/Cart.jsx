@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { CartProvider } from "./CartContext";
+import { CartContext } from "./CartContext";
 
 export default function CartPage() { // Renombré a CartPage para que sea consistente con el archivo
   const { cartItems, addToCart, removeFromCart, clearCart } = useContext(CartContext);
