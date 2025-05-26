@@ -1,7 +1,8 @@
 // cartIcon.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CartContext } from "./cartContext";
+import { CartProvider } from "./components/CartContext";
+
 
 export default function CartIcon() {
   const { cartItems } = useContext(CartContext); // ✅ CAMBIO CLAVE

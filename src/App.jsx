@@ -9,7 +9,7 @@ import AdminLogin from "./components/AdminLogin";
 import AdminPanel from "./components/AdminPanel";
 import ProtectedRoute from "./components/protectedRoute";
 import WhatsAppButton from "./components/WhatsappButton";
-import { CartProvider } from "./components/cartContext";
+import { CartProvider } from "./components/CartContext";
 
 export default function App() {
   return (
