@@ -78,9 +78,6 @@ body {
   display: none;
 }
 
-.cart-icon-header-container {
-  /* No necesita position: relative, flexbox de header-content lo posiciona */
-}
 
 /* PRODUCT LIST */
 .product-list-container {
