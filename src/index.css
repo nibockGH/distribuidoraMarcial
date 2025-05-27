@@ -937,4 +937,25 @@ h2 {
         padding: 6px 10px;
         font-size: 0.8rem;
     }
+    .product-controls button {
+      /* ... (tu código existente) ... */
+      /* Eliminamos el width y height fijos aquí para que se ajusten dinámicamente */
+      /* width: 25px; */
+      /* height: 25px; */
+      padding: 6px 10px; /* Un padding que se vea bien en botones pequeños */
+      font-size: 1em; /* Ajuste para mantener la legibilidad del texto */
+      line-height: 1; /* Ayuda a centrar el texto dentro del botón */
+  }
+
+  .product-controls span {
+      font-size: 1.1em; /* Asegura que el número sea legible */
+      min-width: 30px; /* Asegura un ancho mínimo para el número, para que no se apriete */
+      display: flex; /* Esto es clave: convierte el span en un contenedor flex */
+      align-items: center; /* Centra el número verticalmente */
+      justify-content: center; /* Centra el número horizontalmente */
+      height: 100%; /* Ocupa la altura disponible dentro del flex container */
+      border: 1px solid #ccc; /* Agrega un borde para simular el "cuadradito" que mencionas */
+      border-radius: 5px; /* Bordes ligeramente redondeados */
+      background-color: #fff; /* Fondo blanco para el "cuadradito" */
+  }
 }
