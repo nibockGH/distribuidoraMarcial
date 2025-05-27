@@ -897,10 +897,18 @@ h2 {
         font-size: 1.1em;
     }
 
-    .product-controls button {
-        width: 25px;
-        height: 25px;
-        font-size: 1em;
+    .product-controls span {
+      font-size: 1.1rem;
+      /* width: 25px; /* COMENTA O ELIMINA ESTA LÍNEA */
+      min-width: 30px; /* Asegura un ancho mínimo, igual a la altura de los botones */
+      height: 30px; /* Misma altura que los botones */
+      display: flex; /* Convierte el span en un flex container */
+      align-items: center; /* Centra el número verticalmente */
+      justify-content: center; /* Centra el número horizontalmente */
+      font-weight: bold;
+      border: 1px solid #ccc; /* El borde para el "cuadradito" */
+      border-radius: 5px; /* Bordes redondeados */
+      background-color: #fff; /* Fondo blanco */
     }
 
     .product-controls span {
