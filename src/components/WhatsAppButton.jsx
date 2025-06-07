@@ -12,7 +12,7 @@ export default function WhatsAppButton() {
   }
 
   // Número de WhatsApp (ejemplo: +5493425953685 -> 5493425953685)
-  const phoneNumber = '5493425953685';
+  const phoneNumber = '5493426288271';
   const message = encodeURIComponent('Hola, me gustaría hacer un pedido.'); // Mensaje predefinido
 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;

@@ -1,29 +1,51 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import logoSrc from "../assets/logo.png";
+// src/components/Header.jsx
+import React, { useState } from "react";
+import { Link, NavLink } from "react-router-dom";
+import logoSrc from "../assets/logo.png"; // Asegúrate que esta ruta sea correcta
 import CartIcon from "./CartIcon";
 
 export default function Header() {
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
+  const toggleNav = () => {
+    setIsNavOpen(!isNavOpen);
+  };
+
+  const closeNav = () => {
+    if (isNavOpen) {
+      setIsNavOpen(false);
+    }
+  };
+
   return (
     <header className="site-header">
       <div className="header-content">
         <div className="logo-container">
-          <Link to="/">
-            <img src={logoSrc} alt="Logo Distribuidora Marcial" className="site-logo" />
+          <Link to="/" onClick={closeNav}>
+            <img src={logoSrc} alt="Logo Distribuidora" className="site-logo" />
           </Link>
         </div>
-
-        {/* Nuevo contenedor para el texto de bienvenida */}
         <div className="welcome-message">
           <h1>¡Bienvenidos a Distribuidora Marcial!</h1>
         </div>
-
-        <div className="cart-icon-header-container">
+        <div className="header-actions">
           <CartIcon />
+          <button 
+            className={`nav-toggle ${isNavOpen ? "open" : ""}`} 
+            onClick={toggleNav} 
+            aria-label="Toggle navigation"
+            aria-expanded={isNavOpen}
+          >
+            <span className="hamburger-icon"></span>
+          </button>
         </div>
       </div>
-      {/* El site-title anterior lo movemos y lo integramos en welcome-message */}
-      {/* <h1 className="site-title">Precios y Productos</h1> */}
+      <nav className={`main-nav ${isNavOpen ? "open" : ""}`}>
+        <ul>
+          <li><NavLink to="/" onClick={closeNav} end>Productos</NavLink></li>
+          <li><NavLink to="/admin" onClick={closeNav}>Admin</NavLink></li>
+        </ul>
+      </nav>
     </header>
   );
 }
