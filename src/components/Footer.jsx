@@ -23,12 +23,12 @@ export default function Footer() {
           </p>
         </div>
         <div className="footer-section footer-info">
-          <h3>Los Bosio Salomería</h3>
+          <h3>Distribuidora Marcial</h3>
           <p>Calidad y servicio en cada entrega.</p>
         </div>
       </div>
       <div className="copy-footer">
-        <p>Los Bosio Salomería © {new Date().getFullYear()} Todos los derechos reservados</p>
+        <p>Distribuidora Marcial© {new Date().getFullYear()} Todos los derechos reservados</p>
       </div>
     </footer>
   );
