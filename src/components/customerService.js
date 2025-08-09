@@ -1,6 +1,6 @@
 // src/services/customerService.js
 
-const API_URL = 'https://distribuidoramarcial.onrender.com'; 
+const API_URL = 'https://distribuidoramarcial.onrender.com/api/customers';
 
 // --- Funciones de Clientes ---
 export const getCustomers = async () => {

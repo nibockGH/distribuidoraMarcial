@@ -1,5 +1,5 @@
 // src/services/debtService.js
-const API_URL = 'http://localhost:4000/api';
+const API_URL = 'https://distribuidoramarcial.onrender.com/api';
 
 export const getCustomerDebts = async () => {
     try {

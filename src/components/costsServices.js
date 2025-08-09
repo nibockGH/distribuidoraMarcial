@@ -1,5 +1,6 @@
 // src/components/costsService.js
-const API_URL = 'https://distribuidoramarcial.onrender.com'; 
+const API_URL = 'https://distribuidoramarcial.onrender.com/api';
+
 export const getCosts = async () => {
   const response = await fetch(`${API_URL}/costs`);
   if (!response.ok) throw new Error('Error al obtener los costos');

@@ -1,6 +1,6 @@
 // src/services/dashboardService.js
 
-const API_URL = 'https://distribuidoramarcial.onrender.com'; 
+const API_URL = "https://distribuidoramarcial.onrender.com/api";
 
 export const getDashboardData = async (period = 30) => {
     try {

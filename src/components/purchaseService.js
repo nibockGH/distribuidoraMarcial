@@ -1,5 +1,5 @@
 // src/components/purchaseService.js
-const API_URL = 'https://distribuidoramarcial.onrender.com'; 
+const API_URL = 'https://distribuidoramarcial.onrender.com/api';
 
 export const addPurchase = async (purchaseData) => {
   const response = await fetch(`${API_URL}/purchases`, {

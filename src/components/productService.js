@@ -1,5 +1,5 @@
 // src/components/productService.js
-const API_URL = 'https://distribuidoramarcial.onrender.com'; 
+const API_URL = 'https://distribuidoramarcial.onrender.com/api';
 
 export const getProducts = async () => {
   try {

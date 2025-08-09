@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API_URL = 'https://distribuidoramarcial.onrender.com'; 
+const API_URL = 'https://distribuidoramarcial.onrender.com/api/logistics';
 
 export const getPendingOrders = async () => {
     const response = await axios.get(`${API_URL}/pending-orders`);
