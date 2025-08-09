@@ -13,7 +13,7 @@ const saltRounds = 10;
 // --- CONFIGURACIÓN INICIAL DE LA APP ---
 const app = express();
 const PORT = 4000;
-app.use(cors({ origin: 'http://localhost:3000', optionsSuccessStatus: 200 }));
+app.use(cors({ origin: ['http://localhost:3000', 'https://distribuidora-marcial.netlify.app'] }));
 app.use(express.json());
 
 // --- CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS Y SUBIDAS ---
@@ -40,13 +40,34 @@ function formatCurrency(num) {
     return "$" + (num || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// --- FUNCIÓN PARA CREAR ADMIN SI NO EXISTE ---
+function crearAdminSiNoExiste() {
+    console.log("A. Verificando si el usuario admin existe...");
+    db.get("SELECT COUNT(*) as total FROM users WHERE username = 'admin'", [], (err, row) => {
+        if (err) return console.error("ERROR: No se pudo consultar la tabla de usuarios.", err.message);
+        if (row && row.total > 0) {
+            console.log("B. El usuario admin ya existe.");
+            return;
+        }
+        console.log("C. Usuario admin no encontrado. Creándolo ahora...");
+        const adminPassword = 'password'; // ¡Puedes cambiar esta contraseña por defecto!
+        bcrypt.hash(adminPassword, saltRounds, (err, hash) => {
+            if (err) return console.error("Error al encriptar la contraseña del admin:", err);
+            db.run(`INSERT INTO users (username, password, role) VALUES (?, ?, 'admin')`, ['admin', hash], function(err) {
+                if (err) return console.error("Error al insertar el usuario admin:", err.message);
+                console.log(`D. ¡ÉXITO! Usuario administrador 'admin' fue creado.`);
+            });
+        });
+    });
+}
+
 // --- FUNCIÓN PARA CARGAR DATOS INICIALES (EL SEEDER) ---
 function cargarProductosInicialesSiEsNecesario() {
     console.log("1. Verificando si se deben cargar productos iniciales...");
     db.get("SELECT COUNT(*) as total FROM products", [], (err, row) => {
         if (err) return console.error("ERROR GRAVE: No se pudo consultar la tabla de productos.", err.message);
         if (row && row.total > 0) {
-            console.log("2. La base de datos ya tiene productos. No se necesita hacer nada.");
+            console.log("2. La base de datos ya tiene productos.");
             return;
         }
         console.log("3. Tabla 'products' vacía. Intentando cargar datos desde JSON...");
@@ -111,7 +132,9 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS delivery_routes (id INTEGER PRIMARY KEY AUTOINCREMENT, route_date DATE NOT NULL, vehicle_id INTEGER, driver_name TEXT, status TEXT NOT NULL DEFAULT 'En preparación', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (vehicle_id) REFERENCES vehicles(id))`);
     db.run(`CREATE TABLE IF NOT EXISTS delivery_route_orders (route_id INTEGER NOT NULL, order_id INTEGER NOT NULL, delivery_order INTEGER, PRIMARY KEY (route_id, order_id), FOREIGN KEY (route_id) REFERENCES delivery_routes(id) ON DELETE CASCADE, FOREIGN KEY (order_id) REFERENCES sales_records(id) ON DELETE CASCADE)`);
     
+    // Llamamos a las funciones de inicialización
     cargarProductosInicialesSiEsNecesario();
+    crearAdminSiNoExiste();
 });
 
 // ===================================
