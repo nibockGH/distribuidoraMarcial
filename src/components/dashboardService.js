@@ -1,6 +1,6 @@
 // src/services/dashboardService.js
 
-const API_URL = "http://localhost:4000/api";
+const API_URL = 'https://distribuidoramarcial.onrender.com'; 
 
 export const getDashboardData = async (period = 30) => {
     try {

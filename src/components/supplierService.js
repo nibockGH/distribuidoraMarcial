@@ -1,6 +1,5 @@
 // src/services/supplierService.js
-
-const API_URL = 'http://localhost:4000/api';
+const API_URL = 'https://distribuidoramarcial.onrender.com'; 
 
 // --- FUNCIONES EXISTENTES ---
 export const getSuppliers = async () => {

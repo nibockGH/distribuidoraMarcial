@@ -1,6 +1,6 @@
 // src/components/orderService.js
 
-const API_URL_ORDERS = 'http://localhost:4000/api/orders';
+const API_URL = 'https://distribuidoramarcial.onrender.com'; 
 
 // Obtener todos los pedidos (LA FUNCIÓN QUE FALTABA)
 export const getOrders = async () => {

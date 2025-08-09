@@ -1,5 +1,5 @@
 // src/components/purchaseService.js
-const API_URL = 'http://localhost:4000/api';
+const API_URL = 'https://distribuidoramarcial.onrender.com'; 
 
 export const addPurchase = async (purchaseData) => {
   const response = await fetch(`${API_URL}/purchases`, {

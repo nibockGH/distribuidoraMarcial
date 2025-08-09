@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API_URL = 'http://localhost:4000/api/notifications';
+const API_URL = 'https://distribuidoramarcial.onrender.com'; 
 
 export const getNotifications = async () => {
     const response = await axios.get(API_URL);

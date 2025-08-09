@@ -1,7 +1,8 @@
 // src/components/salespersonService.js
 
-const API_SALESPEOPLE_URL = 'http://localhost:4000/api/salespeople';
-const API_SALESRECORDS_URL = 'http://localhost:4000/api/salesrecords';
+const API_SALESPEOPLE_URL = 'https://distribuidoramarcial.onrender.com/api/salespeople';
+const API_SALESRECORDS_URL = 'https://distribuidoramarcial.onrender.com/api/salesrecords';
+
 
 export const getSalespeople = async () => {
   try {

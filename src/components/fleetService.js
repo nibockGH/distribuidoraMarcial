@@ -1,6 +1,6 @@
 // src/services/fleetService.js
 import axios from 'axios';
-const API_URL = 'http://localhost:4000/api/vehicles';
+const API_URL = 'https://distribuidoramarcial.onrender.com'; 
 
 export const getVehicles = async () => {
     const response = await axios.get(API_URL);
