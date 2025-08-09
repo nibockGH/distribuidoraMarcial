@@ -10,7 +10,7 @@ import { SearchProvider } from "./components/SearchContext";
 // Layouts y Componentes de Ruta
 import AdminLayout from "./components/AdminLayout";
 import PublicLayout from "./components/PublicLayout"; // El nuevo layout que creamos
-import ProtectedRoute from "./components/ProtectedRoute"; // El protector de rutas actualizado
+import ProtectedRoute from "./components/protectedRoute"; // El protector de rutas actualizado
 import Login from "./components/Login"; // La nueva página de login
 import FleetManagement from './components/FleetManagement'; // <-- Añade esta importación
 import Transformation from './components/Transformation'; // <-- Añade esta importación
