@@ -62,11 +62,29 @@ export const addSaleRecord = async (saleRecordData) => {
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: response.statusText }));
-      throw new Error(`Error HTTP ${response.status}: ${errorData.message || response.statusText}`);
+      throw new Error(errorData.message || `Error HTTP ${response.status}`);
     }
     return await response.json();
   } catch (error) {
     console.error("Error adding sale record:", error);
     throw error;
   }
+};
+
+export const updateCommissionStatus = async (recordId, status) => {
+    try {
+        const response = await fetch(`${API_SALESRECORDS_URL}/${recordId}/commission`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: response.statusText }));
+            throw new Error(errorData.message || 'Error al actualizar estado de comisión');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error updating commission status:", error);
+        throw error;
+    }
 };

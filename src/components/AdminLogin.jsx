@@ -10,6 +10,8 @@ export default function AdminLogin() {
   const handleLogin = (e) => {
     e.preventDefault();
 
+
+    
     if (username === "distribuidoramarcial" && password === "escaparate22") {
       // Guardamos la sesión de admin
       localStorage.setItem("isAdmin", "true");

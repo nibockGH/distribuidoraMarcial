@@ -1,51 +1,52 @@
 // src/components/Header.jsx
-import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import logoSrc from "../assets/logo.png"; // Asegúrate que esta ruta sea correcta
-import CartIcon from "./CartIcon";
+import React, { useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useSearch } from './SearchContext'; // <-- Importamos el hook
+import logoSrc from '../assets/logo.png';
+import CartIcon from './CartIcon';
 
 export default function Header() {
-  const [isNavOpen, setIsNavOpen] = useState(false);
+  const { setSearchTerm } = useSearch(); // <-- Usamos el contexto para setear la búsqueda
+  const [localSearch, setLocalSearch] = useState(''); // Estado local para el input
+  const navigate = useNavigate();
 
-  const toggleNav = () => {
-    setIsNavOpen(!isNavOpen);
-  };
-
-  const closeNav = () => {
-    if (isNavOpen) {
-      setIsNavOpen(false);
-    }
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchTerm(localSearch); // Enviamos el término de búsqueda al contexto global
+    navigate('/'); // Navegamos a la lista de productos para ver los resultados
   };
 
   return (
-    <header className="site-header">
-      <div className="header-content">
-        <div className="logo-container">
-          <Link to="/" onClick={closeNav}>
-            <img src={logoSrc} alt="Logo Distribuidora" className="site-logo" />
+    <header className="main-header">
+      <div className="main-header-content">
+        <div className="logo-wrapper">
+          <Link to="/" className="logo-link">
+            <img src={logoSrc} alt="Logo Distribuidora Marcial" className="site-logo" />
           </Link>
         </div>
-        <div className="welcome-message">
-          <h1>¡Bienvenidos a Distribuidora Marcial!</h1>
-        </div>
+        <nav className="main-nav">
+          <ul>
+            <li><NavLink to="/" end>Productos</NavLink></li>
+            <li><NavLink to="/nosotros">Nosotros</NavLink></li>
+            <li><NavLink to="/faq">Preguntas Frecuentes</NavLink></li>
+          </ul>
+        </nav>
         <div className="header-actions">
+          {/* --- FORMULARIO DE BÚSQUEDA FUNCIONAL --- */}
+          <form onSubmit={handleSearchSubmit} className="header-search">
+            <input 
+              type="text" 
+              placeholder="Buscar..." 
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+            />
+            <button type="submit" aria-label="Buscar">
+              <i className="fas fa-search"></i>
+            </button>
+          </form>
           <CartIcon />
-          <button 
-            className={`nav-toggle ${isNavOpen ? "open" : ""}`} 
-            onClick={toggleNav} 
-            aria-label="Toggle navigation"
-            aria-expanded={isNavOpen}
-          >
-            <span className="hamburger-icon"></span>
-          </button>
         </div>
       </div>
-      <nav className={`main-nav ${isNavOpen ? "open" : ""}`}>
-        <ul>
-          <li><NavLink to="/" onClick={closeNav} end>Productos</NavLink></li>
-          <li><NavLink to="/admin" onClick={closeNav}>Admin</NavLink></li>
-        </ul>
-      </nav>
     </header>
   );
 }

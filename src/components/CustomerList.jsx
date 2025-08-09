@@ -41,15 +41,8 @@ export default function CustomerList() {
 
   return (
     <div className="admin-panel-container">
-      {/* ----- BARRA DE NAVEGACIÓN AÑADIDA ----- */}
-      <nav className="admin-main-nav">
-        <Link to="/admin" className="admin-nav-button">Gestionar Productos</Link>
-        <Link to="/admin/stock" className="admin-nav-button">Gestionar Stock</Link>
-        <Link to="/admin/salespeople" className="admin-nav-button">Gestionar Vendedores</Link>
-        <Link to="/admin/customers" className="admin-nav-button active">Gestionar Clientes</Link>
-        <Link to="/admin/orders" className="admin-nav-button">Gestionar Pedidos</Link>
-      </nav>
-
+      
+    
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2>Gestión de Clientes</h2>
         <Link to="/admin/customers/new" className="admin-button-primary">

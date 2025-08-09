@@ -1,16 +1,18 @@
 // src/components/OrderList.jsx
+
 import React, { useState, useEffect } from 'react';
-// Se importa 'Link' para que funcione la barra de navegación que usas
-import { useNavigate, Link } from 'react-router-dom';
-import { getOrders, updateOrderStatus } from './orderService';
+import { Link } from 'react-router-dom'; // Importamos Link para una mejor navegación
+import { getOrders, updateOrderStatus } from './orderService'; // Asegúrate de que la ruta sea correcta
 
 const ORDER_STATUS_OPTIONS = ['Pendiente', 'Procesando', 'Enviado', 'Entregado', 'Cancelado'];
+const API_URL = 'http://localhost:4000'; // Definimos la URL base del backend
 
 export default function OrderList() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  
+  // No necesitamos 'navigate' si usamos <Link> para los detalles
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -29,12 +31,13 @@ export default function OrderList() {
     fetchOrders();
   }, []);
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  const handleStatusChange = async (orderUniqueId, newStatus) => {
     try {
-      await updateOrderStatus(orderId, newStatus);
+      // Usamos el unique_id para actualizar el estado
+      await updateOrderStatus(orderUniqueId, newStatus);
       setOrders(prevOrders =>
         prevOrders.map(order =>
-          order.id === orderId ? { ...order, status: newStatus } : order
+          order.unique_id === orderUniqueId ? { ...order, status: newStatus } : order
         )
       );
     } catch (err) {
@@ -48,23 +51,23 @@ export default function OrderList() {
     return new Date(dateString).toLocaleDateString('es-AR', options);
   };
 
-  if (isLoading) return <div className="admin-panel-container"><p>Cargando pedidos...</p></div>;
-  if (error) return <div className="admin-panel-container"><p className="error-message global-error">{error}</p></div>;
+  if (isLoading) return <div className="admin-section"><p>Cargando pedidos...</p></div>;
+  if (error) return <div className="admin-section"><p className="error-message global-error">{error}</p></div>;
 
   return (
-    <div className="admin-panel-container">
+    <div className="admin-section"> {/* o la clase que uses como contenedor principal */}
 
-      {/* ----- TU BARRA DE NAVEGACIÓN PEGADA AQUÍ ----- */}
-      <nav className="admin-main-nav">
-        <Link to="/admin" className="admin-nav-button">Gestionar Productos</Link>
-        <Link to="/admin/stock" className="admin-nav-button">Gestionar Stock</Link>
-        <Link to="/admin/salespeople" className="admin-nav-button">Gestionar Vendedores</Link>
-        <Link to="/admin/customers" className="admin-nav-button">Gestionar Clientes</Link>
-        {/* NOTA: Moví la clase "active" a este botón para que coincida con la página de Pedidos. */}
-        <Link to="/admin/orders" className="admin-nav-button active">Gestionar Pedidos</Link>
-      </nav>
-
-      <h2>Gestión de Pedidos</h2>
+      {/* MODIFICACIÓN AQUÍ */}
+      <div className="admin-page-header">
+        <h2>Gestión de Pedidos</h2>
+        <a 
+            href="http://localhost:4000/api/orders/export/csv" 
+            className="export-button"
+            download
+        >
+            Exportar a Excel
+        </a>
+      </div>
       {orders.length === 0 ? (
         <p>No hay pedidos registrados.</p>
       ) : (
@@ -82,15 +85,16 @@ export default function OrderList() {
             </thead>
             <tbody>
               {orders.map(order => (
-                <tr key={order.id}>
-                  <td data-label="ID Pedido">{order.id}</td>
+                <tr key={order.unique_id}>
+                  <td data-label="ID Pedido">{order.id} ({order.type.split(' ')[0]})</td>
                   <td data-label="Fecha">{formatDate(order.order_date)}</td>
                   <td data-label="Cliente">{order.customer_name || 'N/A'}</td>
                   <td data-label="Total">${order.total_amount ? Number(order.total_amount).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00'}</td>
                   <td data-label="Estado">
                     <select
                       value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                      // CORRECCIÓN: Pasamos el unique_id para evitar ambigüedades
+                      onChange={(e) => handleStatusChange(order.unique_id, e.target.value)}
                       className="status-select"
                     >
                       {ORDER_STATUS_OPTIONS.map(statusOption => (
@@ -98,10 +102,22 @@ export default function OrderList() {
                       ))}
                     </select>
                   </td>
-                  <td data-label="Acciones">
-                    <button onClick={() => navigate(`/admin/orders/${order.id}`)} className="action-button view">
-                      Ver Detalles
-                    </button>
+                  <td data-label="Acciones" className="actions-cell">
+                    {/* CORRECCIÓN: Usamos Link para navegar y el unique_id */}
+                    <Link to={`/admin/orders/${order.unique_id}`} className="action-button view">
+                      Detalles
+                    </Link>
+                    
+                    {/* NUEVO BOTÓN PARA PDF */}
+                    <a 
+                      href={`${API_URL}/api/orders/${order.unique_id}/pdf`}
+                      className="action-button pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={`remito-${order.unique_id}.pdf`}
+                    >
+                      PDF
+                    </a>
                   </td>
                 </tr>
               ))}

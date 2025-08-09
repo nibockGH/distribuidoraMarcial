@@ -1,88 +1,109 @@
-// src/components/customerService.js
+// src/services/customerService.js
 
-const API_URL_CUSTOMERS = 'http://localhost:4000/api/customers';
+const API_URL = 'http://localhost:4000/api/customers';
 
-// Obtener todos los clientes
+// --- Funciones de Clientes ---
 export const getCustomers = async () => {
-  const response = await fetch(API_URL_CUSTOMERS);
-  if (!response.ok) throw new Error('Error al obtener clientes');
-  return response.json();
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error('Error al obtener clientes.');
+    return response.json();
 };
 
-// Obtener un cliente por ID
 export const getCustomerById = async (id) => {
-  const response = await fetch(`${API_URL_CUSTOMERS}/${id}`);
-  if (!response.ok) throw new Error('Cliente no encontrado');
-  return response.json();
+    const response = await fetch(`${API_URL}/${id}`);
+    if (!response.ok) throw new Error('Error al obtener el cliente.');
+    return response.json();
 };
 
-// Crear nuevo cliente
-export const addCustomer = async (customerData) => {
-  const response = await fetch(API_URL_CUSTOMERS, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(customerData),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Error al crear cliente');
-  }
-  return response.json();
+export const addCustomer = async (customer) => {
+    const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customer)
+    });
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Error al crear cliente.');
+    }
+    return response.json();
+};
+// Función para crear un nuevo cliente
+export const createCustomer = async (customerData) => {
+    const response = await fetch(`${API_URL}/customers`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(customerData),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al crear el cliente');
+    }
+    return response.json();
 };
 
-// Actualizar un cliente
-export const updateCustomer = async (id, customerData) => {
-  const response = await fetch(`${API_URL_CUSTOMERS}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(customerData),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Error al actualizar cliente');
-  }
-  return response.json();
+export const updateCustomer = async (id, customer) => {
+    const response = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customer)
+    });
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Error al actualizar cliente.');
+    }
+    return response.json();
 };
 
-// Eliminar un cliente
+// --- FUNCIÓN QUE FALTABA ---
 export const deleteCustomer = async (id) => {
-  const response = await fetch(`${API_URL_CUSTOMERS}/${id}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error('Error al eliminar cliente');
+    const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Error al eliminar cliente.');
+    }
+    return response.json();
+};
+
+
+// --- Funciones de Detalles y Deudas de Clientes ---
+export const getCustomerDetails = async (customerId) => {
+  const response = await fetch(`${API_URL}/${customerId}/details`);
+  if (!response.ok) throw new Error('No se pudieron cargar los detalles completos del cliente.');
   return response.json();
 };
 
-// Obtener los pedidos de un cliente
-export const getCustomerOrders = async (customerId) => {
-  const response = await fetch(`${API_URL_CUSTOMERS}/${customerId}/orders`);
-  if (!response.ok) throw new Error('Error al obtener los pedidos del cliente');
-  return response.json();
+// --- Funciones que movimos desde debtService ---
+export const getCustomerDebts = async () => {
+    const BASE_API_URL = 'http://localhost:4000/api';
+    const response = await fetch(`${BASE_API_URL}/debts`);
+    if (!response.ok) throw new Error('Error al obtener deudas de clientes');
+    return response.json();
 };
 
-// ===== NUEVAS FUNCIONES PARA PRECIOS ESPECIALES =====
+export const getSupplierDebts = async () => {
+    const BASE_API_URL = 'http://localhost:4000/api';
+    const response = await fetch(`${BASE_API_URL}/suppliers/debts`);
+    if (!response.ok) throw new Error('Error al obtener deudas de proveedores');
+    return response.json();
+};
 
-// Obtener la lista de precios especiales para un cliente
+export const addPayment = async (customerId, paymentData) => {
+    const response = await fetch(`${API_URL}/${customerId}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentData)
+    });
+    if (!response.ok) throw new Error('Error al registrar el pago.');
+    return response.json();
+};
+
+// --- Funciones de Precios Especiales ---
 export const getSpecialPrices = async (customerId) => {
-  const response = await fetch(`${API_URL_CUSTOMERS}/${customerId}/prices`);
-  if (!response.ok) throw new Error('Error al obtener la lista de precios especiales');
-  return response.json();
-};
-
-// Añadir o actualizar un precio especial
-export const addOrUpdateSpecialPrice = async (customerId, productId, specialPrice) => {
-  const response = await fetch(`${API_URL_CUSTOMERS}/${customerId}/prices`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ productId, specialPrice }),
-  });
-  if (!response.ok) throw new Error('Error al guardar el precio especial');
-  return response.json();
-};
-
-// Eliminar un precio especial
-export const deleteSpecialPrice = async (customerId, productId) => {
-  const response = await fetch(`${API_URL_CUSTOMERS}/${customerId}/prices/${productId}`, {
-    method: 'DELETE',
-  });
-  if (!response.ok) throw new Error('Error al eliminar el precio especial');
-  return response.json();
+    const response = await fetch(`${API_URL}/${customerId}/prices`);
+    if (!response.ok) throw new Error('Error al obtener precios especiales.');
+    return response.json();
 };

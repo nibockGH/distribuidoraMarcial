@@ -64,8 +64,13 @@ export default function CartPage() {
         quantity: item.quantity, price_per_unit: item.precio
       }));
       const orderDataForBackend = {
-        items: orderItemsPayload, total_amount: calculateTotal(), status: 'Pendiente'
-      };
+        items: orderItemsPayload,
+        total_amount: calculateTotal(),
+        status: 'Pendiente',
+        // --- LÍNEA AÑADIDA ---
+        customer_name: customerContactInfo.name 
+    };
+    
       
       const backendResponse = await createOrderInBackend(orderDataForBackend);
       setFinalOrderId(backendResponse.order_id);

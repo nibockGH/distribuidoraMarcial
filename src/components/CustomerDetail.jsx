@@ -1,160 +1,139 @@
 // src/components/CustomerDetail.jsx
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getCustomerById, getCustomerOrders, getSpecialPrices, addOrUpdateSpecialPrice, deleteSpecialPrice } from './customerService';
-import { getProducts } from './productService';
 
-export default function CustomerDetail() {
-  const { customerId } = useParams();
-  const navigate = useNavigate();
-  
-  const [customer, setCustomer] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [specialPrices, setSpecialPrices] = useState([]);
-  
-  const [newSpecialPrice, setNewSpecialPrice] = useState({ productId: '', specialPrice: '' });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { getCustomerDetails } from './customerService';
+import { FaFileInvoiceDollar, FaCalendarCheck, FaBalanceScale } from 'react-icons/fa';
 
-  const fetchData = useCallback(async () => {
-    if (!customerId) return;
-    setIsLoading(true);
-    try {
-      const [customerData, customerOrders, productsData, specialPricesData] = await Promise.all([
-        getCustomerById(customerId),
-        getCustomerOrders(customerId),
-        getProducts(),
-        getSpecialPrices(customerId)
-      ]);
-      setCustomer(customerData);
-      setOrders(customerOrders);
-      setProducts(productsData);
-      setSpecialPrices(specialPricesData);
-    } catch (err) {
-      setError(`Error al cargar datos: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [customerId]);
+// --- Funciones de formato ---
+const formatCurrency = (value) => `$${(value || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('es-AR') : 'N/A';
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleSpecialPriceChange = (e) => {
-    setNewSpecialPrice(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleAddSpecialPrice = async (e) => {
-    e.preventDefault();
-    if (!newSpecialPrice.productId || !newSpecialPrice.specialPrice) {
-      alert("Por favor, selecciona un producto y establece un precio.");
-      return;
-    }
-    try {
-      await addOrUpdateSpecialPrice(customerId, newSpecialPrice.productId, parseFloat(newSpecialPrice.specialPrice));
-      setNewSpecialPrice({ productId: '', specialPrice: '' });
-      fetchData();
-    } catch (err) {
-      alert(`Error al guardar: ${err.message}`);
-    }
-  };
-
-  const handleDeleteSpecialPrice = async (productId) => {
-    if (window.confirm("¿Seguro que quieres eliminar este precio especial?")) {
-      try {
-        await deleteSpecialPrice(customerId, productId);
-        fetchData();
-      } catch (err) {
-        alert(`Error al eliminar: ${err.message}`);
-      }
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('es-AR', options);
-  };
-
-  if (isLoading) return <p>Cargando detalles del cliente...</p>;
-  if (error) return <p className="error-message global-error">{error}</p>;
-  if (!customer) return <p>Cliente no encontrado.</p>;
-
-  return (
-    <div className="detail-container">
-      <button onClick={() => navigate('/admin/customers')} className="back-button">&larr; Volver a Lista</button>
-      
-      <div className="detail-header">
-        <h2>{customer.name}</h2>
-        <Link to={`/admin/customers/edit/${customer.id}`} className="admin-button-primary">Editar Cliente</Link>
-      </div>
-
-      <div className="detail-section">
-        <h3>Información de Contacto</h3>
-        <p><strong>Email:</strong> {customer.email || 'N/A'}</p>
-        <p><strong>Teléfono:</strong> {customer.phone || 'N/A'}</p>
-        <p><strong>Dirección:</strong> {customer.address || 'N/A'}</p>
-      </div>
-
-      <div className="detail-section">
-        <h3>Precios Especiales para {customer.name}</h3>
-        <form onSubmit={handleAddSpecialPrice} className="special-price-form">
-          <select name="productId" value={newSpecialPrice.productId} onChange={handleSpecialPriceChange} required>
-            <option value="">-- Seleccionar un producto --</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-          </select>
-          <input type="number" name="specialPrice" placeholder="Precio especial" value={newSpecialPrice.specialPrice}
-            onChange={handleSpecialPriceChange} step="0.01" required />
-          <button type="submit" className="admin-button-primary">Guardar Precio</button>
-        </form>
-
-        {specialPrices.length > 0 ? (
-          <table className="admin-table simple-table">
-            <thead>
-              <tr><th>Producto</th><th>Precio Especial</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              {specialPrices.map(sp => (
-                <tr key={sp.product_id}>
-                  <td>{sp.product_name}</td>
-                  <td>${sp.special_price.toLocaleString('es-AR')}</td>
-                  <td><button onClick={() => handleDeleteSpecialPrice(sp.product_id)} className="action-button delete">Eliminar</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>Este cliente no tiene precios especiales asignados.</p>
-        )}
-      </div>
-
-      <div className="detail-section">
-        <h3>Historial de Pedidos</h3>
-        {orders.length > 0 ? (
-          <table className="admin-table">
-            <thead>
-              <tr><th>ID Pedido</th><th>Fecha</th><th>Estado</th><th>Monto Total</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              {orders.map(order => (
-                <tr key={order.id}>
-                  <td data-label="ID Pedido">{order.id}</td>
-                  <td data-label="Fecha">{formatDate(order.order_date)}</td>
-                  <td data-label="Estado">{order.status}</td>
-                  <td data-label="Monto">${order.total_amount ? order.total_amount.toLocaleString('es-AR') : '0.00'}</td>
-                  <td data-label="Acciones">
-                    <Link to={`/admin/orders/${order.id}`} className="action-button view">Ver Detalles</Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>Este cliente aún no tiene pedidos registrados.</p>
-        )}
-      </div>
+// --- Componente para las tarjetas de resumen ---
+const StatCard = ({ icon, title, value }) => (
+    <div className="detail-stat-card">
+        <div className="detail-stat-icon">{icon}</div>
+        <div>
+            <p>{title}</p>
+            <span>{value}</span>
+        </div>
     </div>
-  );
-}
+);
+
+const CustomerDetail = () => {
+    const [details, setDetails] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [activeTab, setActiveTab] = useState('history'); // 'history', 'account', 'prices'
+    const { customerId } = useParams();
+
+    useEffect(() => {
+        const fetchDetails = async () => {
+            try {
+                const data = await getCustomerDetails(customerId);
+                setDetails(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchDetails();
+    }, [customerId]);
+
+    if (isLoading) return <div className="admin-section"><p>Cargando detalles del cliente...</p></div>;
+    if (error) return <div className="admin-section"><p className="error-message global-error">{error}</p></div>;
+    if (!details) return null;
+
+    const { customer, stats, salesHistory, paymentHistory, specialPrices } = details;
+
+    // Combinar y ordenar transacciones para la cuenta corriente
+    const transactions = [
+        ...salesHistory.map(s => ({ ...s, type: 'Venta', date: s.sale_date, amount: s.sale_amount, credit: 0, debit: s.sale_amount })),
+        ...paymentHistory.map(p => ({ ...p, type: 'Pago', date: p.payment_date, amount: p.payment_amount, credit: p.payment_amount, debit: 0 }))
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return (
+        <div className="customer-detail-container">
+            <div className="detail-page-header">
+                <div>
+                    <h1>{customer.name}</h1>
+                    <p>{customer.address}, {customer.localidad}</p>
+                </div>
+                <Link to="/admin/customers" className="admin-button-secondary">Volver al Listado</Link>
+            </div>
+
+            <div className="detail-stats-grid">
+                <StatCard icon={<FaFileInvoiceDollar/>} title="Total Histórico Comprado" value={formatCurrency(stats.totalSold)} />
+                <StatCard icon={<FaBalanceScale/>} title="Saldo Deudor Actual" value={formatCurrency(stats.balance)} />
+                <StatCard icon={<FaCalendarCheck/>} title="Última Compra" value={formatDate(stats.lastSaleDate)} />
+            </div>
+
+            <div className="tab-navigation">
+                <button onClick={() => setActiveTab('history')} className={activeTab === 'history' ? 'active' : ''}>Historial de Pedidos</button>
+                <button onClick={() => setActiveTab('account')} className={activeTab === 'account' ? 'active' : ''}>Cuenta Corriente</button>
+                <button onClick={() => setActiveTab('prices')} className={activeTab === 'prices' ? 'active' : ''}>Precios Especiales</button>
+            </div>
+
+            <div className="tab-content">
+                {activeTab === 'history' && (
+                    <div>
+                        <h4>Pedidos del Cliente</h4>
+                        <table className="admin-table">
+                            <thead><tr><th>ID Venta</th><th>Fecha</th><th style={{textAlign: 'right'}}>Monto</th><th>Estado Entrega</th></tr></thead>
+                            <tbody>
+                                {salesHistory.map(sale => (
+                                    <tr key={`sale-${sale.id}`}>
+                                        <td>{sale.id}</td>
+                                        <td>{formatDate(sale.sale_date)}</td>
+                                        <td style={{textAlign: 'right'}}>{formatCurrency(sale.sale_amount)}</td>
+                                        <td><span className={`status-badge status-${sale.delivery_status?.toLowerCase()}`}>{sale.delivery_status}</span></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+                {activeTab === 'account' && (
+                     <div>
+                        <h4>Movimientos de Cuenta Corriente</h4>
+                         <table className="admin-table">
+                            <thead><tr><th>Fecha</th><th>Tipo</th><th>Notas</th><th style={{textAlign: 'right'}}>Débito</th><th style={{textAlign: 'right'}}>Crédito</th></tr></thead>
+                            <tbody>
+                                {transactions.map((tx, index) => (
+                                    <tr key={index}>
+                                        <td>{formatDate(tx.date)}</td>
+                                        <td>{tx.type}</td>
+                                        <td>{tx.notes || '-'}</td>
+                                        <td style={{textAlign: 'right'}}>{tx.debit > 0 ? formatCurrency(tx.debit) : '-'}</td>
+                                        <td style={{textAlign: 'right'}}>{tx.credit > 0 ? formatCurrency(tx.credit) : '-'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+                {activeTab === 'prices' && (
+                    <div>
+                        <h4>Precios Especiales Asignados</h4>
+                        {/* Aquí puedes agregar el formulario para añadir/editar precios */}
+                        <table className="admin-table">
+                             <thead><tr><th>ID Producto</th><th>Nombre Producto</th><th style={{textAlign: 'right'}}>Precio Especial</th></tr></thead>
+                             <tbody>
+                                {specialPrices.map(price => (
+                                    <tr key={price.product_id}>
+                                        <td>{price.product_id}</td>
+                                        <td>{price.product_name}</td>
+                                        <td style={{textAlign: 'right'}}>{formatCurrency(price.special_price)}</td>
+                                    </tr>
+                                ))}
+                             </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default CustomerDetail;

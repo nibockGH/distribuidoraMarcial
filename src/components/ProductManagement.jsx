@@ -1,17 +1,17 @@
+// src/components/ProductManagement.jsx
+
 import React, { useState, useEffect } from 'react';
-import { getProducts, addProduct, updateProduct, deleteProduct } from './productService';
-import { Link } from 'react-router-dom';
+import { getProducts, addProduct, updateProduct, deleteProduct } from './productService'; // Asegúrate que la ruta al servicio sea correcta
 
 // Define la URL base de tu backend.
 const API_BASE_URL = 'http://localhost:4000';
 
-export default function AdminPanel() {
+export default function ProductManagement() {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Estados para manejar la subida de imagen
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
 
@@ -74,7 +74,6 @@ export default function AdminPanel() {
     }
 
     const formData = new FormData();
-
     const processedData = {
         ...currentProductData,
         precio: parseFloat(String(currentProductData.precio || '0').replace(',', '.')) || 0,
@@ -145,16 +144,27 @@ export default function AdminPanel() {
     setPreviewUrl('');
   };
 
-  return (
-    <div className="admin-panel-container">
-      
-      <h2>Panel de Administración de Productos</h2>
+ 
+return (
+  <>
+    {/* Modifica esta parte */}
+    <div className="admin-page-header">
+        <h2>Panel de Administración de Productos</h2>
+        <a 
+            href="http://localhost:4000/api/products/export/csv" 
+            className="export-button"
+            download
+        >
+            Exportar a Excel
+        </a>
+    </div>
+
+    {error && <p className="error-message global-error">{error}</p>}
       {error && <p className="error-message global-error">{error}</p>}
       
       <div className="admin-section">
         <h3>{editingProduct ? `Editando: ${editingProduct.nombre}` : 'Añadir Nuevo Producto'}</h3>
         <form onSubmit={handleSubmit} className="admin-form grid-form product-form">
-          {/* ... otros form-fields ... */}
           <div className="form-field">
             <label>Nombre del Producto</label>
             <input type="text" name="nombre" placeholder="Nombre del Producto" required value={currentFormData.nombre || ''} onChange={handleFormChange} />
@@ -197,14 +207,10 @@ export default function AdminPanel() {
             <input type="file" name="product_image" onChange={handleFileChange} accept="image/*" />
           </div>
           
-          {/* Vista previa de la imagen */}
           {(previewUrl || (editingProduct && editingProduct.image_url)) && (
             <div className="form-field full-span image-preview">
                 <label>Vista Previa</label>
                 <img 
-                    // --- CORRECCIÓN AQUÍ ---
-                    // Si hay una previewUrl (imagen nueva), úsala.
-                    // Si no, construye la URL completa a la imagen existente en el backend.
                     src={previewUrl || `${API_BASE_URL}${editingProduct.image_url}`} 
                     alt="Vista previa del producto" 
                     style={{ maxWidth: '150px', maxHeight: '150px', marginTop: '10px', borderRadius: '8px' }} 
@@ -249,8 +255,6 @@ export default function AdminPanel() {
                 <tr key={p.id}>
                   <td data-label="Imagen">
                     {p.image_url ? (
-                      // --- CORRECCIÓN AQUÍ ---
-                      // Construye la URL completa a la imagen en el backend
                       <img src={`${API_BASE_URL}${p.image_url}`} alt={p.nombre} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
                     ) : (
                       <div style={{ width: '60px', height: '60px', backgroundColor: '#f0f0f0', textAlign: 'center', lineHeight: '60px', fontSize: '12px', color: '#888', borderRadius: '4px' }}>
@@ -276,6 +280,6 @@ export default function AdminPanel() {
           </table>
         </div>
       </div>
-    </div>
+    </>
   );
 }

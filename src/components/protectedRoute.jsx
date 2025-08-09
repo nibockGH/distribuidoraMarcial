@@ -1,12 +1,18 @@
-// src/components/ProtectedRoute.jsx
-
-import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import React from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // <-- La nueva fuente de verdad
 
 export default function ProtectedRoute() {
-  // Verificamos si el usuario está autenticado como admin
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
 
-  // Si es admin, renderiza las rutas hijas (Outlet), si no, redirige a /admin-login
-  return isAdmin ? <Outlet /> : <Navigate to="/admin-login" replace />;
+  if (!isAuthenticated) {
+    // Si el usuario NO está autenticado:
+    // 1. Lo redirigimos a la página de /login.
+    // 2. Guardamos la página que intentaba visitar (location) para poder volver a ella después del login.
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Si el usuario SÍ está autenticado, renderiza las rutas anidadas (el panel de admin).
+  return <Outlet />;
 }
