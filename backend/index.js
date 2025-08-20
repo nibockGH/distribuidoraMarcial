@@ -13,8 +13,27 @@ const saltRounds = 10;
 // --- CONFIGURACIÓN INICIAL DE LA APP ---
 const app = express();
 const PORT = 4000;
-app.use(cors({ origin: ['http://localhost:3000', 'https://distribuidora-marcial.netlify.app'] }));
+
+// Lista de orígenes permitidos (Whitelist)
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://distribuidora-marcial.netlify.app' // Asegúrate de que esta URL sea EXACTAMENTE la de tu Netlify
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Permitir apps de servidor (como Postman) o si el origen está en la lista blanca
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('No permitido por la política de CORS'));
+        }
+    }
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
+
 
 // --- CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS Y SUBIDAS ---
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -136,7 +155,6 @@ db.serialize(() => {
     cargarProductosInicialesSiEsNecesario();
     crearAdminSiNoExiste();
 });
-
 // ===================================
 // --- ENDPOINTS DE LA APLICACIÓN ---
 // ===================================
