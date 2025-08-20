@@ -1,4 +1,4 @@
-// --- IMPORTACIONES DE MÓDulos ---
+// --- IMPORTACIONES DE MÓDULOS ---
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
@@ -13,18 +13,8 @@ const saltRounds = 10;
 // --- CONFIGURACIÓN INICIAL DE LA APP ---
 const app = express();
 const PORT = 4000;
-
-// --- CONFIGURACIÓN DE CORS (CORREGIDA) ---
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://distribuidora-marcial.netlify.app' // Asegúrate de que esta URL sea EXACTAMENTE la de tu Netlify
-];
-
-app.use(cors({
-    origin: allowedOrigins
-}));
+app.use(cors({ origin: 'http://localhost:3000', optionsSuccessStatus: 200 }));
 app.use(express.json());
-
 
 // --- CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS Y SUBIDAS ---
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -50,34 +40,13 @@ function formatCurrency(num) {
     return "$" + (num || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// --- FUNCIÓN PARA CREAR ADMIN SI NO EXISTE ---
-function crearAdminSiNoExiste() {
-    console.log("A. Verificando si el usuario admin existe...");
-    db.get("SELECT COUNT(*) as total FROM users WHERE username = 'admin'", [], (err, row) => {
-        if (err) return console.error("ERROR: No se pudo consultar la tabla de usuarios.", err.message);
-        if (row && row.total > 0) {
-            console.log("B. El usuario admin ya existe.");
-            return;
-        }
-        console.log("C. Usuario admin no encontrado. Creándolo ahora...");
-        const adminPassword = 'password'; // ¡Puedes cambiar esta contraseña por defecto!
-        bcrypt.hash(adminPassword, saltRounds, (err, hash) => {
-            if (err) return console.error("Error al encriptar la contraseña del admin:", err);
-            db.run(`INSERT INTO users (username, password, role) VALUES (?, ?, 'admin')`, ['admin', hash], function(err) {
-                if (err) return console.error("Error al insertar el usuario admin:", err.message);
-                console.log(`D. ¡ÉXITO! Usuario administrador 'admin' fue creado.`);
-            });
-        });
-    });
-}
-
 // --- FUNCIÓN PARA CARGAR DATOS INICIALES (EL SEEDER) ---
 function cargarProductosInicialesSiEsNecesario() {
     console.log("1. Verificando si se deben cargar productos iniciales...");
     db.get("SELECT COUNT(*) as total FROM products", [], (err, row) => {
         if (err) return console.error("ERROR GRAVE: No se pudo consultar la tabla de productos.", err.message);
         if (row && row.total > 0) {
-            console.log("2. La base de datos ya tiene productos.");
+            console.log("2. La base de datos ya tiene productos. No se necesita hacer nada.");
             return;
         }
         console.log("3. Tabla 'products' vacía. Intentando cargar datos desde JSON...");
@@ -117,6 +86,27 @@ function cargarProductosInicialesSiEsNecesario() {
     });
 }
 
+// --- FUNCIÓN PARA CREAR ADMIN SI NO EXISTE ---
+function crearAdminSiNoExiste() {
+    console.log("A. Verificando si el usuario admin existe...");
+    db.get("SELECT COUNT(*) as total FROM users WHERE username = 'admin'", [], (err, row) => {
+        if (err) return console.error("ERROR: No se pudo consultar la tabla de usuarios.", err.message);
+        if (row && row.total > 0) {
+            console.log("B. El usuario admin ya existe.");
+            return;
+        }
+        console.log("C. Usuario admin no encontrado. Creándolo ahora...");
+        const adminPassword = 'password'; // Contraseña por defecto
+        bcrypt.hash(adminPassword, saltRounds, (err, hash) => {
+            if (err) return console.error("Error al encriptar la contraseña del admin:", err);
+            db.run(`INSERT INTO users (username, password, role) VALUES (?, ?, 'admin')`, ['admin', hash], function(err) {
+                if (err) return console.error("Error al insertar el usuario admin:", err.message);
+                console.log(`D. ¡ÉXITO! Usuario administrador 'admin' fue creado.`);
+            });
+        });
+    });
+}
+
 // --- CREACIÓN Y MIGRACIÓN DE TABLAS ---
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL, unidad TEXT, image_url TEXT, lot_number TEXT, expiration_date DATE, cost_price REAL)`);
@@ -142,7 +132,6 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS delivery_routes (id INTEGER PRIMARY KEY AUTOINCREMENT, route_date DATE NOT NULL, vehicle_id INTEGER, driver_name TEXT, status TEXT NOT NULL DEFAULT 'En preparación', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (vehicle_id) REFERENCES vehicles(id))`);
     db.run(`CREATE TABLE IF NOT EXISTS delivery_route_orders (route_id INTEGER NOT NULL, order_id INTEGER NOT NULL, delivery_order INTEGER, PRIMARY KEY (route_id, order_id), FOREIGN KEY (route_id) REFERENCES delivery_routes(id) ON DELETE CASCADE, FOREIGN KEY (order_id) REFERENCES sales_records(id) ON DELETE CASCADE)`);
     
-    // Llamamos a las funciones de inicialización
     cargarProductosInicialesSiEsNecesario();
     crearAdminSiNoExiste();
 });
@@ -154,7 +143,6 @@ db.serialize(() => {
 // --- AUTENTICACIÓN Y USUARIOS ---
 app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
-    console.log("Intento de login para:", username); // <-- AÑADIR ESTO
     if (!username || !password) return res.status(400).json({ message: "Usuario y contraseña son requeridos." });
     const sql = `SELECT * FROM users WHERE username = ?`;
     db.get(sql, [username], async (err, user) => {
@@ -389,37 +377,7 @@ app.put("/api/salesrecords/:id/commission", (req, res) => {
     });
 });
 
-// --- CLIENTES ---
-
-// NUEVA RUTA: Para obtener las deudas de todos los clientes
-app.get("/api/debts", (req, res) => {
-    const sql = `
-        SELECT
-            c.id,
-            c.name,
-            c.phone,
-            COALESCE(sales.total_sold, 0) as totalSold,
-            COALESCE(payments.total_paid, 0) as totalPaid,
-            (COALESCE(sales.total_sold, 0) - COALESCE(payments.total_paid, 0)) as balance
-        FROM
-            customers c
-        LEFT JOIN
-            (SELECT customer_id, SUM(sale_amount) as total_sold FROM sales_records GROUP BY customer_id) sales
-            ON c.id = sales.customer_id
-        LEFT JOIN
-            (SELECT customer_id, SUM(payment_amount) as total_paid FROM customer_payments GROUP BY customer_id) payments
-            ON c.id = payments.customer_id
-        ORDER BY
-            balance DESC;
-    `;
-
-    db.all(sql, [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ message: "Error al obtener deudas de clientes.", error: err.message });
-        }
-        res.json(rows);
-    });
-});
+// --- CLIENTES Y CUENTAS CORRIENTES ---
 app.get("/api/customers", (req, res) => { db.all("SELECT * FROM customers ORDER BY name ASC", [], (err, rows) => { if (err) return res.status(500).json({ message: "Error.", errorDetail: err.message }); res.json(rows); }); });
 app.get("/api/customers/:id", (req, res) => { db.get("SELECT * FROM customers WHERE id = ?", [req.params.id], (err, row) => { if (err) return res.status(500).json({ message: "Error.", errorDetail: err.message }); if (!row) return res.status(404).json({ message: "No encontrado." }); res.json(row); }); });
 app.post("/api/customers", (req, res) => {
@@ -1041,44 +999,6 @@ app.get("/api/logistics/routes/:id/pdf", async (req, res) => {
 });
 
 // --- DASHBOARD, REPORTES Y NOTIFICACIONES ---
-
-// RUTA CORREGIDA 1: Para obtener productos con bajo stock
-app.get("/api/dashboard/low-stock", (req, res) => {
-    const threshold = parseInt(req.query.threshold || 10); // Umbral de stock bajo, 10 por defecto
-    const sql = `
-        SELECT p.id, p.name, s.quantity
-        FROM products p
-        JOIN stock s ON p.id = s.product_id
-        WHERE s.quantity <= ? AND s.quantity > 0
-        ORDER BY s.quantity ASC
-    `;
-    db.all(sql, [threshold], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ message: "Error al obtener productos con bajo stock.", error: err.message });
-        }
-        res.json(rows);
-    });
-});
-
-// RUTA CORREGIDA 2: Para obtener ventas por tipo de cliente/negocio
-app.get("/api/dashboard/sales-by-type", (req, res) => {
-    const sql = `
-        SELECT
-            COALESCE(c.business_type, 'No especificado') as type,
-            SUM(sr.sale_amount) as totalSales
-        FROM sales_records sr
-        JOIN customers c ON sr.customer_id = c.id
-        GROUP BY type
-        ORDER BY totalSales DESC
-    `;
-    db.all(sql, [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ message: "Error al obtener ventas por tipo de negocio.", error: err.message });
-        }
-        res.json(rows);
-    });
-});
-
 app.get("/api/dashboard/stats", (req, res) => {
     const period = parseInt(req.query.period || 30);
     const query = (sql, params = []) => new Promise((resolve, reject) => db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row))));
