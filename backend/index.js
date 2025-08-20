@@ -1,4 +1,4 @@
-// --- IMPORTACIONES DE MÓDULOS ---
+// --- IMPORTACIONES DE MÓDulos ---
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
@@ -14,24 +14,15 @@ const saltRounds = 10;
 const app = express();
 const PORT = 4000;
 
-// Lista de orígenes permitidos (Whitelist)
+// --- CONFIGURACIÓN DE CORS (CORREGIDA) ---
 const allowedOrigins = [
     'http://localhost:3000',
     'https://distribuidora-marcial.netlify.app' // Asegúrate de que esta URL sea EXACTAMENTE la de tu Netlify
 ];
 
-const corsOptions = {
-    origin: function (origin, callback) {
-        // Permitir apps de servidor (como Postman) o si el origen está en la lista blanca
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('No permitido por la política de CORS'));
-        }
-    }
-};
-
-app.use(cors(corsOptions));
+app.use(cors({
+    origin: allowedOrigins
+}));
 app.use(express.json());
 
 
@@ -155,6 +146,7 @@ db.serialize(() => {
     cargarProductosInicialesSiEsNecesario();
     crearAdminSiNoExiste();
 });
+
 // ===================================
 // --- ENDPOINTS DE LA APLICACIÓN ---
 // ===================================
