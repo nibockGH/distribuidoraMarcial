@@ -10,12 +10,25 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-// --- CONFIGURACIÓN INICIAL DE LA APP ---
+// --- CONFIGURACIÓN INICIAL DE LA APP ---/
 const app = express();
 const PORT = 4000;
-app.use(cors({ origin: 'http://localhost:3000', optionsSuccessStatus: 200 }));
-app.use(express.json());
 
+// Lista de orígenes permitidos (Whitelist)
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://distribuidoramarcial.netlify.app' // ¡Asegúrate que esta sea tu URL de Netlify!
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('No permitido por la política de CORS'));
+        }
+    }
+};
 // --- CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS Y SUBIDAS ---
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
