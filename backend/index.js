@@ -10,14 +10,14 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-// --- CONFIGURACIÓN INICIAL DE LA APP ---/
+// --- CONFIGURACIÓN INICIAL DE LA APP ---
 const app = express();
 const PORT = 4000;
 
-// Lista de orígenes permitidos (Whitelist)
+// --- CONFIGURACIÓN DE CORS (CORREGIDA Y DEFINITIVA) ---
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://distribuidoramarcial.netlify.app' // ¡Asegúrate que esta sea tu URL de Netlify!
+    'https://distribuidoramarcial.netlify.app' // URL de tu frontend en Netlify
 ];
 
 const corsOptions = {
@@ -29,6 +29,11 @@ const corsOptions = {
         }
     }
 };
+
+app.use(cors(corsOptions));
+app.use(express.json());
+
+
 // --- CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS Y SUBIDAS ---
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -53,13 +58,34 @@ function formatCurrency(num) {
     return "$" + (num || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// --- FUNCIÓN PARA CREAR ADMIN SI NO EXISTE ---
+function crearAdminSiNoExiste() {
+    console.log("A. Verificando si el usuario admin existe...");
+    db.get("SELECT COUNT(*) as total FROM users WHERE username = 'admin'", [], (err, row) => {
+        if (err) return console.error("ERROR: No se pudo consultar la tabla de usuarios.", err.message);
+        if (row && row.total > 0) {
+            console.log("B. El usuario admin ya existe.");
+            return;
+        }
+        console.log("C. Usuario admin no encontrado. Creándolo ahora...");
+        const adminPassword = 'password'; // Contraseña por defecto
+        bcrypt.hash(adminPassword, saltRounds, (err, hash) => {
+            if (err) return console.error("Error al encriptar la contraseña del admin:", err);
+            db.run(`INSERT INTO users (username, password, role) VALUES (?, ?, 'admin')`, ['admin', hash], function(err) {
+                if (err) return console.error("Error al insertar el usuario admin:", err.message);
+                console.log(`D. ¡ÉXITO! Usuario administrador 'admin' fue creado.`);
+            });
+        });
+    });
+}
+
 // --- FUNCIÓN PARA CARGAR DATOS INICIALES (EL SEEDER) ---
 function cargarProductosInicialesSiEsNecesario() {
     console.log("1. Verificando si se deben cargar productos iniciales...");
     db.get("SELECT COUNT(*) as total FROM products", [], (err, row) => {
         if (err) return console.error("ERROR GRAVE: No se pudo consultar la tabla de productos.", err.message);
         if (row && row.total > 0) {
-            console.log("2. La base de datos ya tiene productos. No se necesita hacer nada.");
+            console.log("2. La base de datos ya tiene productos.");
             return;
         }
         console.log("3. Tabla 'products' vacía. Intentando cargar datos desde JSON...");
@@ -96,27 +122,6 @@ function cargarProductosInicialesSiEsNecesario() {
         } catch (e) {
             console.error("¡ERROR CRÍTICO! Falló el proceso en el bloque try...catch:", e.message);
         }
-    });
-}
-
-// --- FUNCIÓN PARA CREAR ADMIN SI NO EXISTE ---
-function crearAdminSiNoExiste() {
-    console.log("A. Verificando si el usuario admin existe...");
-    db.get("SELECT COUNT(*) as total FROM users WHERE username = 'admin'", [], (err, row) => {
-        if (err) return console.error("ERROR: No se pudo consultar la tabla de usuarios.", err.message);
-        if (row && row.total > 0) {
-            console.log("B. El usuario admin ya existe.");
-            return;
-        }
-        console.log("C. Usuario admin no encontrado. Creándolo ahora...");
-        const adminPassword = 'password'; // Contraseña por defecto
-        bcrypt.hash(adminPassword, saltRounds, (err, hash) => {
-            if (err) return console.error("Error al encriptar la contraseña del admin:", err);
-            db.run(`INSERT INTO users (username, password, role) VALUES (?, ?, 'admin')`, ['admin', hash], function(err) {
-                if (err) return console.error("Error al insertar el usuario admin:", err.message);
-                console.log(`D. ¡ÉXITO! Usuario administrador 'admin' fue creado.`);
-            });
-        });
     });
 }
 
